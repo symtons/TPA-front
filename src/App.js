@@ -1,9 +1,13 @@
 // src/App.js
-import React, { useState } from 'react';
+import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { CircularProgress, Box } from '@mui/material';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthForm from './components/AuthForm';
 import Dashboard from './components/Dashboard';
+import SessionTimeoutModal from './components/ui/SessionTimeoutModal';
+import useSessionTimeout from './hooks/useSessionTimeout';
 
 const theme = createTheme({
   palette: {
@@ -71,25 +75,55 @@ const theme = createTheme({
   },
 });
 
+// Loading component
+const LoadingScreen = () => (
+  <Box 
+    sx={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '100vh',
+      background: 'linear-gradient(135deg, #1976d2 0%, #ff9800 50%, #ffc107 100%)'
+    }}
+  >
+    <CircularProgress size={60} sx={{ color: 'white' }} />
+  </Box>
+);
+
+// Main app component with auth logic
+const AppContent = () => {
+  const { isAuthenticated, user, loading, logout } = useAuth();
+  const { showWarning, timeLeft, continueSession, handleLogout } = useSessionTimeout();
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <>
+      {isAuthenticated ? (
+        <Dashboard user={user} onLogout={logout} />
+      ) : (
+        <AuthForm />
+      )}
+      
+      <SessionTimeoutModal
+        open={showWarning}
+        timeLeft={timeLeft}
+        onContinue={continueSession}
+        onLogout={handleLogout}
+      />
+    </>
+  );
+};
+
 function App() {
-  const [user, setUser] = useState(null);
-
-  const handleLogin = (userData) => {
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-  };
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {user ? (
-        <Dashboard user={user} onLogout={handleLogout} />
-      ) : (
-        <AuthForm onLogin={handleLogin} />
-      )}
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

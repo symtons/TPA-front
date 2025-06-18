@@ -16,54 +16,74 @@ import {
   Paper,
   Divider,
   Avatar,
-  Stack
+  Stack,
+  CircularProgress
 } from '@mui/material';
-import { Person, Business } from '@mui/icons-material';
+import { Person, Business, Visibility, VisibilityOff } from '@mui/icons-material';
 import { ROLES } from '../constants';
-import { mockUsers } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
 
-const AuthForm = ({ onLogin }) => {
+const AuthForm = () => {
+  const { login, loading, error, clearError } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ 
     email: '', 
     password: '', 
     name: '', 
     role: '' 
   });
-  const [error, setError] = useState('');
+  const [formError, setFormError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setFormError('');
+    clearError();
 
     if (isLogin) {
-      const user = mockUsers.find(u => 
-        u.email === formData.email && u.password === formData.password
-      );
-      if (user) {
-        onLogin(user);
-      } else {
-        setError('Invalid credentials');
+      // Login with real API
+      const result = await login({
+        email: formData.email,
+        password: formData.password
+      });
+      
+      if (!result.success) {
+        setFormError(result.message || 'Login failed');
       }
     } else {
+      // Registration (placeholder - you'll need to implement this API endpoint)
       if (formData.name && formData.email && formData.password && formData.role) {
-        const newUser = {
-          id: Date.now(),
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role
-        };
-        onLogin(newUser);
+        setFormError('Registration functionality will be implemented with backend API');
       } else {
-        setError('Please fill all fields');
+        setFormError('Please fill all fields');
       }
     }
   };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear errors when user starts typing
+    if (formError) setFormError('');
+    if (error) clearError();
   };
+
+  const quickLogin = (credentials) => {
+    setFormData({ 
+      email: credentials.email, 
+      password: credentials.password,
+      name: '',
+      role: ''
+    });
+  };
+
+  const demoCredentials = [
+    { label: 'Admin', email: 'admin@company.com', password: 'admin123' },
+    { label: 'HR Manager', email: 'hr@company.com', password: 'hr123' },
+    { label: 'Admin Staff', email: 'staff@company.com', password: 'staff123' },
+    { label: 'Field Staff', email: 'field@company.com', password: 'field123' }
+  ];
+
+  const currentError = error || formError;
 
   return (
     <Box 
@@ -93,13 +113,32 @@ const AuthForm = ({ onLogin }) => {
                 background: 'linear-gradient(45deg, #1976d2 30%, #ff9800 90%)',
                 color: 'white',
                 p: 4,
-                display: 'flex',
+                display: { xs: 'none', md: 'flex' },
                 flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                textAlign: 'center'
+                textAlign: 'center',
+                position: 'relative',
+                overflow: 'hidden'
               }}
             >
+              {/* Background Pattern */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundImage: `
+                    radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 1px, transparent 1px),
+                    radial-gradient(circle at 80% 50%, rgba(255,255,255,0.1) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '40px 40px',
+                  opacity: 0.3
+                }}
+              />
+              
               {/* TPA Logo Area */}
               <Box 
                 sx={{
@@ -127,7 +166,6 @@ const AuthForm = ({ onLogin }) => {
                     position: 'relative'
                   }}
                 >
-                  {/* Tennessee stars representation */}
                   <Box sx={{ position: 'relative' }}>
                     <Business sx={{ fontSize: 40, color: '#ff9800' }} />
                     <Box 
@@ -165,7 +203,11 @@ const AuthForm = ({ onLogin }) => {
                       height: 8,
                       borderRadius: '50%',
                       background: 'rgba(255,255,255,0.6)',
-                      animation: `pulse 2s infinite ${i * 0.5}s`
+                      animation: `pulse 2s infinite ${i * 0.5}s`,
+                      '@keyframes pulse': {
+                        '0%, 100%': { opacity: 0.6 },
+                        '50%': { opacity: 1 }
+                      }
                     }}
                   />
                 ))}
@@ -175,12 +217,20 @@ const AuthForm = ({ onLogin }) => {
             {/* Right Side - Login Form */}
             <Box sx={{ flex: 1, p: 4 }}>
               <Box sx={{ maxWidth: 400, mx: 'auto', mt: 2 }}>
+                {/* Mobile Logo */}
+                <Box sx={{ display: { xs: 'flex', md: 'none' }, justifyContent: 'center', mb: 4 }}>
+                  <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>
+                    <Business />
+                  </Avatar>
+                </Box>
+
                 <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>
                   <Avatar 
                     sx={{ 
                       bgcolor: 'primary.main',
                       width: 48,
-                      height: 48
+                      height: 48,
+                      display: { xs: 'none', md: 'flex' }
                     }}
                   >
                     <Person />
@@ -195,9 +245,9 @@ const AuthForm = ({ onLogin }) => {
                   </Box>
                 </Stack>
 
-                {error && (
+                {currentError && (
                   <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-                    {error}
+                    {currentError}
                   </Alert>
                 )}
 
@@ -210,6 +260,7 @@ const AuthForm = ({ onLogin }) => {
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       required={!isLogin}
+                      disabled={loading}
                       sx={{
                         mb: 2,
                         '& .MuiOutlinedInput-root': {
@@ -227,6 +278,7 @@ const AuthForm = ({ onLogin }) => {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     required
+                    disabled={loading}
                     sx={{
                       mb: 2,
                       '& .MuiOutlinedInput-root': {
@@ -238,11 +290,22 @@ const AuthForm = ({ onLogin }) => {
                   <TextField
                     fullWidth
                     label="Password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     margin="normal"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     required
+                    disabled={loading}
+                    InputProps={{
+                      endAdornment: (
+                        <Box 
+                          sx={{ cursor: 'pointer', p: 1 }}
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </Box>
+                      )
+                    }}
                     sx={{
                       mb: 2,
                       '& .MuiOutlinedInput-root': {
@@ -267,6 +330,7 @@ const AuthForm = ({ onLogin }) => {
                         value={formData.role}
                         onChange={(e) => handleInputChange('role', e.target.value)}
                         required={!isLogin}
+                        disabled={loading}
                       >
                         <MenuItem value={ROLES.HR_MANAGER}>HR Manager</MenuItem>
                         <MenuItem value={ROLES.ADMIN_STAFF}>Admin Staff</MenuItem>
@@ -280,6 +344,7 @@ const AuthForm = ({ onLogin }) => {
                     fullWidth
                     variant="contained"
                     size="large"
+                    disabled={loading}
                     sx={{ 
                       mt: 3, 
                       mb: 3,
@@ -288,10 +353,17 @@ const AuthForm = ({ onLogin }) => {
                       background: 'linear-gradient(45deg, #1976d2 30%, #ff9800 90%)',
                       boxShadow: '0 3px 5px 2px rgba(255, 105, 135, .3)',
                       fontSize: '1.1rem',
-                      fontWeight: 'bold'
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #1565c0 30%, #f57c00 90%)',
+                      }
                     }}
                   >
-                    {isLogin ? 'Sign In to TPA' : 'Create TPA Account'}
+                    {loading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      isLogin ? 'Sign In to TPA' : 'Create TPA Account'
+                    )}
                   </Button>
 
                   <Divider sx={{ my: 2 }}>
@@ -302,7 +374,13 @@ const AuthForm = ({ onLogin }) => {
 
                   <Button 
                     fullWidth
-                    onClick={() => setIsLogin(!isLogin)}
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setFormError('');
+                      clearError();
+                      setFormData({ email: '', password: '', name: '', role: '' });
+                    }}
+                    disabled={loading}
                     sx={{ 
                       textTransform: 'none',
                       color: 'primary.main',
@@ -314,25 +392,52 @@ const AuthForm = ({ onLogin }) => {
                 </Box>
 
                 {/* Demo Credentials */}
-                <Paper 
-                  sx={{ 
-                    mt: 4, 
-                    p: 3, 
-                    bgcolor: '#f8f9fa',
-                    borderRadius: 2,
-                    border: '1px solid #e9ecef'
-                  }}
-                >
-                  <Typography variant="subtitle2" gutterBottom fontWeight="bold" color="primary">
-                    🔑 Demo Access Credentials
-                  </Typography>
-                  <Stack spacing={1}>
-                    <Typography variant="body2"><strong>Admin:</strong> admin@company.com / admin123</Typography>
-                    <Typography variant="body2"><strong>HR Manager:</strong> hr@company.com / hr123</Typography>
-                    <Typography variant="body2"><strong>Admin Staff:</strong> staff@company.com / staff123</Typography>
-                    <Typography variant="body2"><strong>Field Staff:</strong> field@company.com / field123</Typography>
-                  </Stack>
-                </Paper>
+                {isLogin && (
+                  <Paper 
+                    sx={{ 
+                      mt: 4, 
+                      p: 3, 
+                      bgcolor: '#f8f9fa',
+                      borderRadius: 2,
+                      border: '1px solid #e9ecef'
+                    }}
+                  >
+                    <Typography variant="subtitle2" gutterBottom fontWeight="bold" color="primary">
+                      🔑 Demo Access Credentials
+                    </Typography>
+                    <Stack spacing={1}>
+                      {demoCredentials.map((cred, index) => (
+                        <Box 
+                          key={index}
+                          sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            py: 0.5
+                          }}
+                        >
+                          <Typography variant="body2">
+                            <strong>{cred.label}:</strong> {cred.email}
+                          </Typography>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            onClick={() => quickLogin(cred)}
+                            disabled={loading}
+                            sx={{ 
+                              minWidth: 'auto',
+                              px: 2,
+                              textTransform: 'none',
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            Use
+                          </Button>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Paper>
+                )}
               </Box>
             </Box>
           </Box>

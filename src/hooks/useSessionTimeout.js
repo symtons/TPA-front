@@ -1,157 +1,86 @@
 // src/hooks/useSessionTimeout.js
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-const INACTIVITY_TIMEOUT = 3 * 60 * 1000; // 3 minutes in milliseconds
-const WARNING_TIMEOUT = 30 * 1000; // 30 seconds warning before logout
+const INACTIVITY_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+const WARNING_TIME = 30 * 1000; // 30 seconds warning
 
-// Events that reset the inactivity timer
-const ACTIVITY_EVENTS = [
-  'mousedown',
-  'mousemove',
-  'keypress',
-  'scroll',
-  'touchstart',
-  'click'
-];
-
-const useSessionTimeout = () => {
-  const { logout, refreshSession, isAuthenticated } = useAuth();
-  const [showWarning, setShowWarning] = useState(false);
+const useSessionTimeout = (onLogout, isAuthenticated) => {
+  const [showModal, setShowModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   
   const timeoutRef = useRef(null);
-  const warningTimeoutRef = useRef(null);
+  const warningRef = useRef(null);
   const countdownRef = useRef(null);
-  const lastActivityRef = useRef(Date.now());
-
-  const handleLogout = useCallback(async () => {
-    // Clear all timers
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    
-    setShowWarning(false);
-    await logout();
-  }, [logout]);
 
   const resetTimer = useCallback(() => {
-    lastActivityRef.current = Date.now();
-    
-    // Clear existing timers
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-    if (countdownRef.current) clearInterval(countdownRef.current);
-    
-    // Hide warning if showing
-    if (showWarning) {
-      setShowWarning(false);
-    }
-
     if (!isAuthenticated) return;
 
-    // Set warning timer (show warning 30 seconds before logout)
-    warningTimeoutRef.current = setTimeout(() => {
-      setShowWarning(true);
+    // Clear existing timers
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (warningRef.current) clearTimeout(warningRef.current);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+
+    setShowModal(false);
+
+    // Set warning timer
+    warningRef.current = setTimeout(() => {
+      setShowModal(true);
       setTimeLeft(30);
       
       // Start countdown
       countdownRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
+        setTimeLeft(prev => {
           if (prev <= 1) {
-            handleLogout();
+            onLogout();
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-    }, INACTIVITY_TIMEOUT - WARNING_TIMEOUT);
+    }, INACTIVITY_TIMEOUT - WARNING_TIME);
 
     // Set logout timer
     timeoutRef.current = setTimeout(() => {
-      handleLogout();
+      onLogout();
     }, INACTIVITY_TIMEOUT);
-  }, [showWarning, isAuthenticated, handleLogout]);
+  }, [isAuthenticated, onLogout]);
 
-  const continueSession = useCallback(async () => {
-    try {
-      const success = await refreshSession();
-      if (success) {
-        setShowWarning(false);
-        resetTimer();
-      } else {
-        handleLogout();
-      }
-    } catch (error) {
-      console.error('Failed to refresh session:', error);
-      handleLogout();
-    }
-  }, [refreshSession, resetTimer, handleLogout]);
+  const handleContinue = useCallback(() => {
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    resetTimer();
+  }, [resetTimer]);
 
-  // Set up activity listeners
+  const handleLogoutNow = useCallback(() => {
+    onLogout();
+  }, [onLogout]);
+
   useEffect(() => {
-    if (!isAuthenticated) {
-      // Clear timers when not authenticated
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-      if (countdownRef.current) clearInterval(countdownRef.current);
-      setShowWarning(false);
-      return;
-    }
+    if (!isAuthenticated) return;
 
-    // Add event listeners for user activity
-    const handleActivity = () => {
-      resetTimer();
-    };
-
-    ACTIVITY_EVENTS.forEach(event => {
-      document.addEventListener(event, handleActivity, true);
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, resetTimer, true);
     });
 
-    // Initial timer start
     resetTimer();
 
-    // Cleanup function
     return () => {
-      ACTIVITY_EVENTS.forEach(event => {
-        document.removeEventListener(event, handleActivity, true);
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimer, true);
       });
       
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
+      if (warningRef.current) clearTimeout(warningRef.current);
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, [isAuthenticated, resetTimer]);
 
-  // Handle page visibility change (user switches tabs)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Page is hidden, don't reset timer
-        return;
-      } else {
-        // Page is visible again, check if too much time has passed
-        const timeSinceLastActivity = Date.now() - lastActivityRef.current;
-        if (timeSinceLastActivity > INACTIVITY_TIMEOUT) {
-          handleLogout();
-        } else {
-          resetTimer();
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [handleLogout, resetTimer]);
-
   return {
-    showWarning,
+    showModal,
     timeLeft,
-    continueSession,
-    handleLogout
+    handleContinue,
+    handleLogoutNow
   };
 };
 

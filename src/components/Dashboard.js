@@ -35,10 +35,20 @@ import DashboardStats from './dashboard/DashboardStats';
 import QuickActions from './dashboard/QuickActions';
 import RecentActivities from './dashboard/RecentActivities';
 import CustomCard from './ui/CustomCard';
+import SessionTimeoutModal from './ui/SessionTimeoutModal';
+import useSessionTimeout from '../hooks/useSessionTimeout';
 
 const Dashboard = ({ user, onLogout }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
+
+  // Session timeout management
+  const {
+    showModal,
+    timeLeft,
+    handleContinue,
+    handleLogoutNow
+  } = useSessionTimeout(onLogout, true);
 
   const getMenuItems = (role) => {
     const baseItems = [
@@ -81,9 +91,7 @@ const Dashboard = ({ user, onLogout }) => {
   };
 
   const handleQuickAction = (action) => {
-    // Handle quick action clicks
     console.log('Quick action clicked:', action);
-    // You can implement navigation or modal opening here
     switch (action) {
       case 'employees':
         setSelectedTab(1);
@@ -125,19 +133,15 @@ const Dashboard = ({ user, onLogout }) => {
               ]}
             />
             
-            {/* Stats Cards */}
             <DashboardStats user={user} />
             
-            {/* Main Dashboard Content */}
             <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
-              {/* Left Column - Quick Actions */}
               <Box sx={{ flex: '2' }}>
                 <CustomCard title="Quick Actions" sx={{ height: 'fit-content' }}>
                   <QuickActions user={user} onActionClick={handleQuickAction} />
                 </CustomCard>
               </Box>
               
-              {/* Right Column - Recent Activities */}
               <Box sx={{ flex: '1' }}>
                 <CustomCard 
                   title="Recent Activities"
@@ -185,6 +189,14 @@ const Dashboard = ({ user, onLogout }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
+      {/* Session Timeout Modal */}
+      <SessionTimeoutModal
+        open={showModal}
+        timeLeft={timeLeft}
+        onContinue={handleContinue}
+        onLogout={handleLogoutNow}
+      />
+
       {/* Sidebar */}
       <Drawer
         variant="permanent"
@@ -241,7 +253,6 @@ const Dashboard = ({ user, onLogout }) => {
 
       {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1 }}>
-        {/* App Bar */}
         <AppBar 
           position="fixed" 
           elevation={1}
@@ -306,7 +317,6 @@ const Dashboard = ({ user, onLogout }) => {
           </Toolbar>
         </AppBar>
 
-        {/* Content */}
         <Container maxWidth="xl" sx={{ mt: 10, mb: 4, px: 3 }}>
           {renderTabContent()}
         </Container>

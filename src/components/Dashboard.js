@@ -31,24 +31,14 @@ import {
 import { ROLES } from '../constants';
 import TPALogo from './ui/TPALogo';
 import PageHeader from './layout/PageHeader';
-import DashboardStats from './dashboard/DashboardStats';
-import QuickActions from './dashboard/QuickActions';
-import RecentActivities from './dashboard/RecentActivities';
+import DashboardStatsSection from './dashboard/DashboardStatsSection';
+import QuickActionsSection from './dashboard/QuickActionsSection';
+import RecentActivitiesSection from './dashboard/RecentActivitiesSection';
 import CustomCard from './ui/CustomCard';
-import SessionTimeoutModal from './ui/SessionTimeoutModal';
-import useSessionTimeout from '../hooks/useSessionTimeout';
 
 const Dashboard = ({ user, onLogout }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
-
-  // Session timeout management
-  const {
-    showModal,
-    timeLeft,
-    handleContinue,
-    handleLogoutNow
-  } = useSessionTimeout(onLogout, true);
 
   const getMenuItems = (role) => {
     const baseItems = [
@@ -137,35 +127,16 @@ const Dashboard = ({ user, onLogout }) => {
             <Box sx={{ display: 'flex', gap: 3, mb: 4, alignItems: 'flex-start' }}>
               {/* Left Column - Stats Cards + Quick Actions */}
               <Box sx={{ flex: '3', display: 'flex', flexDirection: 'column', gap: 3 }}>
-                {/* Stats Cards */}
-                <DashboardStats user={user} />
+                {/* Stats Cards Section */}
+                <DashboardStatsSection user={user} />
                 
-                {/* Quick Actions - Below Stats Only */}
-                <CustomCard title="Quick Actions" sx={{ height: 'fit-content' }}>
-                  <QuickActions user={user} onActionClick={handleQuickAction} />
-                </CustomCard>
+                {/* Quick Actions Section */}
+                <QuickActionsSection user={user} onActionClick={handleQuickAction} />
               </Box>
               
               {/* Right Column - Recent Activities (Independent) */}
               <Box sx={{ flex: '1', minWidth: '300px' }}>
-                <CustomCard 
-                  title="Recent Activities"
-                  sx={{ 
-                    height: 'auto',
-                    minHeight: '600px' // Allow it to be taller
-                  }}
-                  headerActions={
-                    <Typography 
-                      variant="body2" 
-                      color="primary" 
-                      sx={{ cursor: 'pointer' }}
-                    >
-                      View All
-                    </Typography>
-                  }
-                >
-                  <RecentActivities user={user} />
-                </CustomCard>
+                <RecentActivitiesSection user={user} />
               </Box>
             </Box>
           </>
@@ -197,14 +168,6 @@ const Dashboard = ({ user, onLogout }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Session Timeout Modal */}
-      <SessionTimeoutModal
-        open={showModal}
-        timeLeft={timeLeft}
-        onContinue={handleContinue}
-        onLogout={handleLogoutNow}
-      />
-
       {/* Sidebar */}
       <Drawer
         variant="permanent"
@@ -261,6 +224,7 @@ const Dashboard = ({ user, onLogout }) => {
 
       {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1 }}>
+        {/* App Bar */}
         <AppBar 
           position="fixed" 
           elevation={1}
@@ -325,6 +289,7 @@ const Dashboard = ({ user, onLogout }) => {
           </Toolbar>
         </AppBar>
 
+        {/* Content */}
         <Container maxWidth="xl" sx={{ mt: 10, mb: 4, px: 3 }}>
           {renderTabContent()}
         </Container>

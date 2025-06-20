@@ -1,158 +1,136 @@
 // src/components/dashboard/DashboardStats.js
 import React from 'react';
-import { Grid } from '@mui/material';
-import StatCard from '../ui/StatCard';
-import { 
-  People, 
-  Schedule, 
-  Assignment, 
-  TrendingUp,
-  AccessTime,
+import { Grid, Card, CardContent, Typography, Box, Avatar } from '@mui/material';
+import {
+  People,
+  PendingActions,
+  Schedule,
   CheckCircle,
-  Warning,
-  Analytics
+  RequestPage,
+  Assignment,
+  AccessTime,
+  Analytics,
+  TrendingUp,
+  Warning
 } from '@mui/icons-material';
 import { ROLES } from '../../constants';
 
 const DashboardStats = ({ user }) => {
+  // Role-based statistics configuration
   const getStatsForRole = (role) => {
     switch (role) {
       case ROLES.ADMIN:
         return [
-          { 
-            title: 'Total Employees', 
-            value: '142', 
-            color: 'primary',
+          {
+            title: 'Total Employees',
+            value: '142',
+            subtitle: 'Active staff members',
             icon: <People />,
-            subtitle: 'Active staff members'
+            color: '#1976d2',
+            bgColor: '#e3f2fd'
           },
-          { 
-            title: 'Pending Requests', 
-            value: '24', 
-            color: 'warning',
+          {
+            title: 'Pending Requests',
+            value: '24',
+            subtitle: 'Awaiting approval',
             icon: <Warning />,
-            subtitle: 'Awaiting approval'
+            color: '#f57c00',
+            bgColor: '#fff3e0'
           },
-          { 
-            title: 'Active Shifts', 
-            value: '8', 
-            color: 'info',
+          {
+            title: 'Active Shifts',
+            value: '8',
+            subtitle: 'Currently running',
             icon: <Schedule />,
-            subtitle: 'Currently running'
+            color: '#1976d2',
+            bgColor: '#e3f2fd'
           },
-          { 
-            title: 'System Status', 
-            value: 'Online', 
-            color: 'success',
-            icon: <Analytics />,
-            subtitle: 'All systems operational'
+          {
+            title: 'System Status',
+            value: 'Online',
+            subtitle: 'All systems operational',
+            icon: <CheckCircle />,
+            color: '#388e3c',
+            bgColor: '#e8f5e8'
           }
         ];
+
       case ROLES.HR_MANAGER:
         return [
-          { 
-            title: 'Total Employees', 
-            value: '156', 
-            color: 'primary',
+          {
+            title: 'Total Employees',
+            value: '142',
+            subtitle: 'Active staff members',
             icon: <People />,
-            trend: '+12 this month',
-            subtitle: 'All departments'
+            color: '#1976d2',
+            bgColor: '#e3f2fd'
           },
-          { 
-            title: 'Pending Leave', 
-            value: '8', 
-            color: 'warning',
-            icon: <Schedule />,
-            trend: '2 urgent',
-            subtitle: 'Requests awaiting review'
+          {
+            title: 'Leave Requests',
+            value: '18',
+            subtitle: 'Pending approval',
+            icon: <RequestPage />,
+            color: '#f57c00',
+            bgColor: '#fff3e0'
           },
-          { 
-            title: 'New Hires', 
-            value: '5', 
-            color: 'success',
-            icon: <TrendingUp />,
-            trend: 'This quarter',
-            subtitle: 'Onboarding in progress'
-          },
-          { 
-            title: 'Onboarding Tasks', 
-            value: '12', 
-            color: 'info',
+          {
+            title: 'Onboarding',
+            value: '3',
+            subtitle: 'New employees this month',
             icon: <Assignment />,
-            trend: '85% completed',
-            subtitle: 'Active checklist items'
+            color: '#388e3c',
+            bgColor: '#e8f5e8'
           }
         ];
+
       case ROLES.ADMIN_STAFF:
         return [
-          { 
-            title: 'PTO Balance', 
-            value: '15 days', 
-            color: 'success',
+          {
+            title: 'My Attendance',
+            value: '96%',
+            subtitle: 'This month',
             icon: <Schedule />,
-            trend: 'Well balanced',
-            subtitle: 'Available this year'
+            color: '#1976d2',
+            bgColor: '#e3f2fd'
           },
-          { 
-            title: 'Hours This Week', 
-            value: '32', 
-            color: 'info',
-            icon: <AccessTime />,
-            trend: '+4 from last week',
-            subtitle: 'Out of 40 hours'
+          {
+            title: 'Pending Tasks',
+            value: '7',
+            subtitle: 'Requiring attention',
+            icon: <PendingActions />,
+            color: '#f57c00',
+            bgColor: '#fff3e0'
           },
-          { 
-            title: 'Pending Tasks', 
-            value: '3', 
-            color: 'warning',
-            icon: <Assignment />,
-            trend: '1 due today',
-            subtitle: 'Action items'
-          },
-          { 
-            title: 'Completed Projects', 
-            value: '23', 
-            color: 'primary',
+          {
+            title: 'Completed',
+            value: '23',
+            subtitle: 'Tasks this week',
             icon: <CheckCircle />,
-            trend: '+2 this month',
-            subtitle: 'Successfully finished'
+            color: '#388e3c',
+            bgColor: '#e8f5e8'
           }
         ];
+
       case ROLES.FIELD_STAFF:
         return [
-          { 
-            title: 'Hours Today', 
-            value: '6.5', 
-            color: 'info',
+          {
+            title: 'Hours This Week',
+            value: '38.5',
+            subtitle: 'Logged hours',
             icon: <AccessTime />,
-            trend: 'On track',
-            subtitle: 'Current shift progress'
+            color: '#1976d2',
+            bgColor: '#e3f2fd'
           },
-          { 
-            title: 'Active Tasks', 
-            value: '4', 
-            color: 'warning',
+          {
+            title: 'Active Tasks',
+            value: '5',
+            subtitle: 'In progress',
             icon: <Assignment />,
-            trend: '2 high priority',
-            subtitle: 'Assigned to you'
-          },
-          { 
-            title: 'Completed Jobs', 
-            value: '23', 
-            color: 'success',
-            icon: <CheckCircle />,
-            trend: '+3 this week',
-            subtitle: 'This month'
-          },
-          { 
-            title: 'Next Shift', 
-            value: 'Tomorrow', 
-            color: 'primary',
-            icon: <Schedule />,
-            trend: '8:00 AM',
-            subtitle: 'Field assignment'
+            color: '#f57c00',
+            bgColor: '#fff3e0'
           }
         ];
+
       default:
         return [];
     }
@@ -161,10 +139,75 @@ const DashboardStats = ({ user }) => {
   const stats = getStatsForRole(user.role);
 
   return (
-    <Grid container spacing={3} sx={{ mb: 4 }}>
+    <Grid container spacing={3}>
       {stats.map((stat, index) => (
-        <Grid item xs={12} sm={6} md={3} key={index}>
-          <StatCard {...stat} />
+        <Grid item xs={12} sm={6} md={stats.length === 4 ? 3 : stats.length === 3 ? 4 : 6} key={index}>
+          <Card 
+            sx={{ 
+              height: '100%',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+              border: '1px solid #e0e0e0',
+              borderRadius: 2,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                borderColor: stat.color
+              }
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="h4" fontWeight="bold" color={stat.color} gutterBottom>
+                    {stat.value}
+                  </Typography>
+                  <Typography variant="h6" fontWeight="600" color="text.primary" gutterBottom>
+                    {stat.title}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {stat.subtitle}
+                  </Typography>
+                </Box>
+                <Avatar 
+                  sx={{ 
+                    bgcolor: stat.bgColor,
+                    color: stat.color,
+                    width: 56,
+                    height: 56,
+                    ml: 2
+                  }}
+                >
+                  {stat.icon}
+                </Avatar>
+              </Box>
+              
+              {/* Progress bar for certain stats */}
+              {(stat.title.includes('Attendance') || stat.title.includes('Completed')) && (
+                <Box sx={{ mt: 2 }}>
+                  <Box 
+                    sx={{ 
+                      width: '100%', 
+                      height: 4, 
+                      bgcolor: '#e0e0e0', 
+                      borderRadius: 2,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <Box 
+                      sx={{ 
+                        width: stat.title.includes('Attendance') ? '96%' : '78%',
+                        height: '100%', 
+                        bgcolor: stat.color,
+                        borderRadius: 2,
+                        transition: 'width 1s ease-in-out'
+                      }} 
+                    />
+                  </Box>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
         </Grid>
       ))}
     </Grid>

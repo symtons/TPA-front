@@ -1,5 +1,9 @@
-// src/components/dashboard/RecentActivities.js
-import React from 'react';
+// =============================================================================
+// FRONTEND STEP 4: UPDATED RECENT ACTIVITIES COMPONENT
+// File: src/components/dashboard/RecentActivities.js (Replace existing)
+// =============================================================================
+
+import React, { useState, useEffect } from 'react';
 import { 
   List, 
   ListItem, 
@@ -8,103 +12,74 @@ import {
   Avatar, 
   Typography, 
   Chip,
-  Box 
+  Box,
+  CircularProgress
 } from '@mui/material';
-import { ROLES } from '../../constants';
+import dashboardApi from '../../services/dashboardApi';
 
 const RecentActivities = ({ user }) => {
-  // Role-based activities
-  const getActivitiesForRole = (role) => {
-    const baseActivities = [
-      {
-        id: 1,
-        user: 'John Doe',
-        action: 'added new employee',
-        details: 'Sofia Martinez joined Field Operations',
-        time: '2 hours ago',
-        avatar: 'J',
-        color: '#4caf50',
-        type: 'USER_CREATED'
-      },
-      {
-        id: 2,
-        user: 'Jane Smith',
-        action: 'updated payroll info',
-        details: 'Processed monthly payroll for 15 employees',
-        time: '4 hours ago',
-        avatar: 'J',
-        color: '#2196f3',
-        type: 'PAYROLL_PROCESSED'
-      },
-      {
-        id: 3,
-        user: 'Mike Johnson',
-        action: 'approved leave request',
-        details: 'Vacation leave for Emma Garcia (5 days)',
-        time: '1 day ago',
-        avatar: 'M',
-        color: '#ff9800',
-        type: 'LEAVE_APPROVED'
-      },
-      {
-        id: 4,
-        user: 'Sarah Williams',
-        action: 'created new shift',
-        details: 'Morning shift scheduled for next week',
-        time: '1 day ago',
-        avatar: 'S',
-        color: '#9c27b0',
-        type: 'SCHEDULE_UPDATED',
-        isNew: true
-      },
-      {
-        id: 5,
-        user: 'Tom Brown',
-        action: 'completed onboarding',
-        details: 'Successfully completed training modules',
-        time: '2 days ago',
-        avatar: 'T',
-        color: '#795548',
-        type: 'ONBOARDING_COMPLETED'
-      },
-      {
-        id: 6,
-        user: 'Lisa Davis',
-        action: 'submitted report',
-        details: 'Monthly expense report uploaded',
-        time: '3 days ago',
-        avatar: 'L',
-        color: '#607d8b',
-        type: 'REPORT_SUBMITTED'
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        setLoading(true);
+        dashboardApi.refreshToken(); // Refresh token before making request
+        const response = await dashboardApi.getRecentActivities(user.id, user.role);
+        
+        if (response.success) {
+          setActivities(response.data);
+        } else {
+          setError('Failed to load recent activities');
+        }
+      } catch (err) {
+        console.error('Error fetching recent activities:', err);
+        setError('Error loading recent activities');
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    // Filter activities based on role
-    switch (role) {
-      case ROLES.ADMIN:
-        return baseActivities; // Admins see all activities
+    if (user?.id && user?.role) {
+      fetchActivities();
+    }
+  }, [user?.id, user?.role]);
 
-      case ROLES.HR_MANAGER:
-        return baseActivities.filter(activity => 
-          ['USER_CREATED', 'LEAVE_APPROVED', 'ONBOARDING_COMPLETED', 'PAYROLL_PROCESSED'].includes(activity.type)
-        );
-
-      case ROLES.ADMIN_STAFF:
-        return baseActivities.filter(activity => 
-          ['PAYROLL_PROCESSED', 'SCHEDULE_UPDATED', 'LEAVE_APPROVED', 'REPORT_SUBMITTED'].includes(activity.type)
-        );
-
-      case ROLES.FIELD_STAFF:
-        return baseActivities.filter(activity => 
-          ['SCHEDULE_UPDATED', 'ONBOARDING_COMPLETED', 'REPORT_SUBMITTED'].includes(activity.type)
-        ).slice(0, 4); // Limit to 4 activities for field staff
-
-      default:
-        return baseActivities.slice(0, 3);
+  const formatTimeAgo = (dateString) => {
+    const now = new Date();
+    const activityTime = new Date(dateString);
+    const diffInMinutes = Math.floor((now - activityTime) / (1000 * 60));
+    
+    if (diffInMinutes < 1) {
+      return 'Just now';
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+    } else if (diffInMinutes < 1440) {
+      const hours = Math.floor(diffInMinutes / 60);
+      return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    } else {
+      const days = Math.floor(diffInMinutes / 1440);
+      return `${days} day${days === 1 ? '' : 's'} ago`;
     }
   };
 
-  const activities = getActivitiesForRole(user.role);
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ mt: 1 }}>
@@ -164,7 +139,7 @@ const RecentActivities = ({ user }) => {
                     {activity.details}
                   </Typography>
                   <Typography variant="caption" color="text.disabled">
-                    {activity.time}
+                    {formatTimeAgo(activity.time)}
                   </Typography>
                 </Box>
               }

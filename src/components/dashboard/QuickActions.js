@@ -1,6 +1,10 @@
-// src/components/dashboard/QuickActions.js
-import React from 'react';
-import { Grid, Button, Box } from '@mui/material';
+// =============================================================================
+// FRONTEND STEP 3: UPDATED QUICK ACTIONS COMPONENT
+// File: src/components/dashboard/QuickActions.js (Replace existing)
+// =============================================================================
+
+import React, { useState, useEffect } from 'react';
+import { Grid, Button, Box, CircularProgress, Typography } from '@mui/material';
 import {
   People,
   Schedule,
@@ -13,80 +17,113 @@ import {
   Person,
   AccessTime
 } from '@mui/icons-material';
-import { ROLES } from '../../constants';
+import dashboardApi from '../../services/dashboardApi';
+
+const iconMap = {
+  'People': People,
+  'Schedule': Schedule,
+  'Assessment': Assessment,
+  'Settings': Settings,
+  'Analytics': Analytics,
+  'Backup': Backup,
+  'RequestPage': RequestPage,
+  'Assignment': Assignment,
+  'Person': Person,
+  'AccessTime': AccessTime
+};
 
 const QuickActions = ({ user, onActionClick }) => {
-  // Role-based quick actions configuration
-  const getActionsForRole = (role) => {
-    switch (role) {
-      case ROLES.ADMIN:
-        return [
-          { key: 'employees', label: 'Manage Employees', icon: <People />, color: 'primary' },
-          { key: 'schedule', label: 'Schedule Shifts', icon: <Schedule />, color: 'info' },
-          { key: 'reports', label: 'View Reports', icon: <Assessment />, color: 'success' },
-          { key: 'settings', label: 'System Settings', icon: <Settings />, color: 'warning' },
-          { key: 'analytics', label: 'Analytics', icon: <Analytics />, color: 'secondary' },
-          { key: 'backup', label: 'System Backup', icon: <Backup />, color: 'error' }
-        ];
+  const [actions, setActions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-      case ROLES.HR_MANAGER:
-        return [
-          { key: 'employees', label: 'Manage Employees', icon: <People />, color: 'primary' },
-          { key: 'leave-requests', label: 'Leave Requests', icon: <RequestPage />, color: 'warning' },
-          { key: 'onboarding', label: 'Onboarding', icon: <Assignment />, color: 'success' },
-          { key: 'reports', label: 'HR Reports', icon: <Assessment />, color: 'info' }
-        ];
+  useEffect(() => {
+    const fetchActions = async () => {
+      try {
+        setLoading(true);
+        dashboardApi.refreshToken(); // Refresh token before making request
+        const response = await dashboardApi.getQuickActions(user.role);
+        
+        if (response.success) {
+          setActions(response.data);
+        } else {
+          setError('Failed to load quick actions');
+        }
+      } catch (err) {
+        console.error('Error fetching quick actions:', err);
+        setError('Error loading quick actions');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      case ROLES.ADMIN_STAFF:
-        return [
-          { key: 'time-tracking', label: 'Time & Attendance', icon: <AccessTime />, color: 'primary' },
-          { key: 'request-leave', label: 'Request Leave', icon: <RequestPage />, color: 'warning' },
-          { key: 'my-profile', label: 'My Profile', icon: <Person />, color: 'info' }
-        ];
-
-      case ROLES.FIELD_STAFF:
-        return [
-          { key: 'time-tracking', label: 'Clock In/Out', icon: <AccessTime />, color: 'primary' },
-          { key: 'tasks', label: 'My Tasks', icon: <Assignment />, color: 'success' }
-        ];
-
-      default:
-        return [];
+    if (user?.role) {
+      fetchActions();
     }
-  };
+  }, [user?.role]);
 
-  const actions = getActionsForRole(user.role);
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="150px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="150px">
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+  }
+
+  const getButtonColor = (colorName) => {
+    const colorMap = {
+      'primary': 'primary',
+      'secondary': 'secondary',
+      'success': 'success',
+      'warning': 'warning',
+      'error': 'error',
+      'info': 'info'
+    };
+    return colorMap[colorName] || 'primary';
+  };
 
   return (
     <Box sx={{ p: 1 }}>
       <Grid container spacing={2}>
-        {actions.map((action, index) => (
-          <Grid item xs={12} sm={6} md={actions.length <= 2 ? 6 : actions.length <= 4 ? 6 : 4} key={index}>
-            <Button
-              variant="contained"
-              fullWidth
-              color={action.color}
-              startIcon={action.icon}
-              onClick={() => onActionClick(action.key)}
-              sx={{
-                py: 2,
-                px: 3,
-                borderRadius: 2,
-                textTransform: 'none',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 25px rgba(0,0,0,0.25)'
-                }
-              }}
-            >
-              {action.label}
-            </Button>
-          </Grid>
-        ))}
+        {actions.map((action, index) => {
+          const IconComponent = iconMap[action.icon] || Assignment;
+          
+          return (
+            <Grid item xs={12} sm={6} md={actions.length <= 2 ? 6 : actions.length <= 4 ? 6 : 4} key={index}>
+              <Button
+                variant="contained"
+                fullWidth
+                color={getButtonColor(action.color)}
+                startIcon={<IconComponent />}
+                onClick={() => onActionClick(action.key)}
+                sx={{
+                  py: 2,
+                  px: 3,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.25)'
+                  }
+                }}
+              >
+                {action.label}
+              </Button>
+            </Grid>
+          );
+        })}
       </Grid>
     </Box>
   );

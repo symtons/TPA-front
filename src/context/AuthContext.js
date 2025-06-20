@@ -1,4 +1,8 @@
-// src/context/AuthContext.js
+// =============================================================================
+// FRONTEND STEP 5: UPDATED AUTH CONTEXT WITH EMPLOYEE DATA
+// File: src/context/AuthContext.js (Replace existing)
+// =============================================================================
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
@@ -48,15 +52,24 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify(credentials)
       });
 
-      // Handle the direct response structure from your API
       if (response.success) {
         const sessionToken = response.token;
+        
+        // Create comprehensive user data object
         const userData = {
           id: response.user.id,
           email: response.user.email,
           role: response.user.role,
           name: response.employee ? response.employee.fullName : response.user.email.split('@')[0],
-          employee: response.employee
+          employee: response.employee ? {
+            id: response.employee.id,
+            fullName: response.employee.fullName,
+            firstName: response.employee.firstName,
+            lastName: response.employee.lastName,
+            jobTitle: response.employee.jobTitle,
+            department: response.employee.department,
+            employeeNumber: response.employee.employeeNumber
+          } : null
         };
 
         // Store token and user data
@@ -113,7 +126,15 @@ export const AuthProvider = ({ children }) => {
           email: response.user.email,
           role: response.user.role,
           name: response.employee ? response.employee.fullName : response.user.email.split('@')[0],
-          employee: response.employee
+          employee: response.employee ? {
+            id: response.employee.id,
+            fullName: response.employee.fullName,
+            firstName: response.employee.firstName,
+            lastName: response.employee.lastName,
+            jobTitle: response.employee.jobTitle,
+            department: response.employee.department,
+            employeeNumber: response.employee.employeeNumber
+          } : null
         };
         
         setUser(userData);

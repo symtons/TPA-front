@@ -1,4 +1,8 @@
-// src/App.js
+// =============================================================================
+// FIXED APP.JS WITH WORKING SESSION TIMEOUT
+// File: src/App.js (Replace existing)
+// =============================================================================
+
 import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -93,7 +97,14 @@ const LoadingScreen = () => (
 // Main app component with auth logic
 const AppContent = () => {
   const { isAuthenticated, user, loading, logout } = useAuth();
-  const { showWarning, timeLeft, continueSession, handleLogout } = useSessionTimeout();
+  
+  // Session timeout hook - this was missing!
+  const { 
+    showModal: showTimeoutModal, 
+    timeLeft, 
+    handleContinue: continueSession, 
+    handleLogoutNow: timeoutLogout 
+  } = useSessionTimeout(logout, isAuthenticated);
 
   if (loading) {
     return <LoadingScreen />;
@@ -107,11 +118,12 @@ const AppContent = () => {
         <AuthForm />
       )}
       
+      {/* Session Timeout Modal - Now properly connected */}
       <SessionTimeoutModal
-        open={showWarning}
+        open={showTimeoutModal}
         timeLeft={timeLeft}
         onContinue={continueSession}
-        onLogout={handleLogout}
+        onLogout={timeoutLogout}
       />
     </>
   );

@@ -133,19 +133,27 @@ const Dashboard = ({ user, onLogout }) => {
               ]}
             />
             
-            <DashboardStats user={user} />
-            
-            <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
-              <Box sx={{ flex: '2' }}>
+            {/* Two Column Layout */}
+            <Box sx={{ display: 'flex', gap: 3, mb: 4, alignItems: 'flex-start' }}>
+              {/* Left Column - Stats Cards + Quick Actions */}
+              <Box sx={{ flex: '3', display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {/* Stats Cards */}
+                <DashboardStats user={user} />
+                
+                {/* Quick Actions - Below Stats Only */}
                 <CustomCard title="Quick Actions" sx={{ height: 'fit-content' }}>
                   <QuickActions user={user} onActionClick={handleQuickAction} />
                 </CustomCard>
               </Box>
               
-              <Box sx={{ flex: '1' }}>
+              {/* Right Column - Recent Activities (Independent) */}
+              <Box sx={{ flex: '1', minWidth: '300px' }}>
                 <CustomCard 
                   title="Recent Activities"
-                  sx={{ height: 'fit-content' }}
+                  sx={{ 
+                    height: 'auto',
+                    minHeight: '600px' // Allow it to be taller
+                  }}
                   headerActions={
                     <Typography 
                       variant="body2" 

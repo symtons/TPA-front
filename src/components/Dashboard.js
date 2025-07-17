@@ -1,4 +1,4 @@
-// src/components/Dashboard.js
+// src/components/Dashboard.js - Updated with Employee Onboarding
 import React, { useState } from 'react';
 import {
   AppBar,
@@ -36,9 +36,28 @@ import QuickActionsSection from './dashboard/QuickActionsSection';
 import RecentActivitiesSection from './dashboard/RecentActivitiesSection';
 import CustomCard from './ui/CustomCard';
 
+// Import Time & Attendance Components
+import TimeAttendancePage from './timeAttendance/TimeAttendancePage';
+
+// Import Leave Management Components
+import LeaveManagement from './leave/LeaveManagement';
+
+// Import Onboarding Components  
+import Onboarding from './onboarding/Onboarding';
+import EmployeeOnboarding from './onboarding/EmployeeOnboarding';
+import EmployeeManagement from './employees/EmployeeManagement';
+
+// ADD THESE TWO IMPORTS FOR HR ACTION FORM:
+import HRActionForm from './hrAction/HRActionForm';
+import HRManagementDashboard from './hrAction/HRManagementDashboard';
+
 const Dashboard = ({ user, onLogout }) => {
   const [selectedTab, setSelectedTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
+  
+  // ADD THESE TWO STATE VARIABLES FOR HR ACTION FORM:
+  const [hrActionFormOpen, setHrActionFormOpen] = useState(false);
+  const [hrManagementOpen, setHrManagementOpen] = useState(false);
 
   const getMenuItems = (role) => {
     const baseItems = [
@@ -59,6 +78,7 @@ const Dashboard = ({ user, onLogout }) => {
         return [
           ...baseItems,
           { text: 'Employees', icon: <People />, tab: 1 },
+          { text: 'Time & Attendance', icon: <Schedule />, tab: 2 },
           { text: 'Leave Management', icon: <RequestPage />, tab: 3 },
           { text: 'Onboarding', icon: <Assignment />, tab: 4 }
         ];
@@ -67,13 +87,15 @@ const Dashboard = ({ user, onLogout }) => {
           ...baseItems,
           { text: 'Time & Attendance', icon: <Schedule />, tab: 2 },
           { text: 'Leave Management', icon: <RequestPage />, tab: 3 },
+          { text: 'My Onboarding', icon: <Assignment />, tab: 4 },
           { text: 'My Profile', icon: <Settings />, tab: 5 }
         ];
       case ROLES.FIELD_STAFF:
         return [
           ...baseItems,
           { text: 'Time & Attendance', icon: <Schedule />, tab: 2 },
-          { text: 'My Tasks', icon: <Assignment />, tab: 4 }
+          { text: 'Leave Management', icon: <RequestPage />, tab: 3 },
+          { text: 'My Onboarding', icon: <Assignment />, tab: 4 }
         ];
       default:
         return baseItems;
@@ -82,12 +104,31 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleQuickAction = (action) => {
     console.log('Quick action clicked:', action);
+    
+    // ADD THESE TWO CASES FOR HR ACTION FORM:
+    if (action === 'hr_action_form') {
+      setHrActionFormOpen(true);
+      return;
+    }
+    
+    if (action === 'hr_management') {
+      setHrManagementOpen(true);
+      return;
+    }
+    
+    // KEEP ALL YOUR EXISTING LOGIC EXACTLY THE SAME:
     switch (action) {
       case 'employees':
         setSelectedTab(1);
         break;
       case 'schedule':
       case 'time-tracking':
+      case 'clock-toggle':
+      case 'view-timesheet':
+      case 'submit-timesheet':
+      case 'view-attendance':
+      case 'approve-timesheets':
+      case 'attendance-reports':
         setSelectedTab(2);
         break;
       case 'leave-requests':
@@ -96,6 +137,7 @@ const Dashboard = ({ user, onLogout }) => {
         break;
       case 'onboarding':
       case 'tasks':
+      case 'my-onboarding':
         setSelectedTab(4);
         break;
       case 'settings':
@@ -141,6 +183,36 @@ const Dashboard = ({ user, onLogout }) => {
             </Box>
           </>
         );
+      
+      case 1: // Employees Tab
+        return <EmployeeManagement />;
+
+      case 2: // Time & Attendance Tab
+        return <TimeAttendancePage />;
+      
+      case 3: // Leave Management Tab
+        return <LeaveManagement />;
+      
+      case 4: // Onboarding Tab - UPDATED LOGIC
+        // Show different onboarding views based on role
+        if (user.role === ROLES.ADMIN || user.role === ROLES.HR_MANAGER) {
+          // Management view - full onboarding system
+          return <Onboarding />;
+        } else if (user.role === ROLES.ADMIN_STAFF || user.role === ROLES.FIELD_STAFF || user.role?.includes('Employee')) {
+          // Employee view - personal onboarding tasks using the NEW component
+          return <EmployeeOnboarding />;
+        } else {
+          // Fallback for other roles
+          return (
+            <CustomCard>
+              <Typography variant="h6" gutterBottom>Onboarding</Typography>
+              <Typography variant="body1" color="text.secondary">
+                Onboarding functionality is not available for your role.
+              </Typography>
+            </CustomCard>
+          );
+        }
+      
       default:
         return (
           <>
@@ -294,6 +366,21 @@ const Dashboard = ({ user, onLogout }) => {
           {renderTabContent()}
         </Container>
       </Box>
+
+      {/* ADD THESE TWO COMPONENTS AT THE END FOR HR ACTION FORM: */}
+      <HRActionForm 
+        open={hrActionFormOpen}
+        onClose={() => setHrActionFormOpen(false)}
+        currentUser={user}
+      />
+
+      {(user?.role === 'Admin' || user?.role === 'HR Manager') && (
+        <HRManagementDashboard 
+          open={hrManagementOpen}
+          onClose={() => setHrManagementOpen(false)}
+          currentUser={user}
+        />
+      )}
     </Box>
   );
 };

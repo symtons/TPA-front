@@ -8,7 +8,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
     <Box 
       sx={{ 
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #1976d2 0%, #ff9800 50%, #ffc107 100%)',
+        background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 50%, #ff6f00 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -26,11 +26,11 @@ const AuthLayout = ({ children, title, subtitle }) => {
           }}
         >
           <Box sx={{ display: 'flex', minHeight: '600px' }}>
-            {/* Left Side - Branding */}
+            {/* Left Side - TPA Branding */}
             <Box 
               sx={{
                 flex: 1,
-                background: 'linear-gradient(45deg, #1976d2 30%, #ff9800 90%)',
+                background: 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
                 color: 'white',
                 p: 4,
                 display: { xs: 'none', md: 'flex' },
@@ -59,14 +59,30 @@ const AuthLayout = ({ children, title, subtitle }) => {
                 }}
               />
               
-              <TPALogo size="xlarge" variant="default" />
+              {/* TPA Logo */}
+              <TPALogo 
+                size="xlarge"
+                showText={false}
+                sx={{ zIndex: 1 }}
+              />
               
-              <Typography variant="body1" sx={{ opacity: 0.9, maxWidth: 300, mt: 2 }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  mt: 2,
+                  mb: 2, 
+                  opacity: 0.9, 
+                  maxWidth: 350,
+                  zIndex: 1,
+                  fontWeight: 500,
+                  letterSpacing: 0.5
+                }}
+              >
                 Empowering communities through comprehensive personal assistance services across Tennessee
               </Typography>
               
               {/* Decorative elements */}
-              <Box sx={{ mt: 4, display: 'flex', gap: 1 }}>
+              <Box sx={{ mt: 4, display: 'flex', gap: 1, zIndex: 1 }}>
                 {[...Array(3)].map((_, i) => (
                   <Box
                     key={i}
@@ -93,13 +109,14 @@ const AuthLayout = ({ children, title, subtitle }) => {
                 p: 4,
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)'
               }}
             >
               <Box sx={{ maxWidth: 400, mx: 'auto', width: '100%' }}>
                 {/* Mobile Logo */}
                 <Box sx={{ display: { xs: 'flex', md: 'none' }, justifyContent: 'center', mb: 4 }}>
-                  <TPALogo size="medium" variant="minimal" />
+                  <TPALogo size="medium" showText={false} />
                 </Box>
                 
                 {title && (

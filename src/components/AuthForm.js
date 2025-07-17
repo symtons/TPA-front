@@ -1,4 +1,4 @@
-// src/components/AuthForm.js
+// src/components/AuthForm.js - Updated with TPA Logo
 import React, { useState } from 'react';
 import {
   Container,
@@ -22,6 +22,7 @@ import {
 import { Person, Business, Visibility, VisibilityOff } from '@mui/icons-material';
 import { ROLES } from '../constants';
 import { useAuth } from '../context/AuthContext';
+import TPALogo from './ui/TPALogo';
 
 const AuthForm = () => {
   const { login, loading, error, clearError } = useAuth();
@@ -77,10 +78,7 @@ const AuthForm = () => {
   };
 
   const demoCredentials = [
-    { label: 'Admin', email: 'admin@company.com', password: 'admin123' },
-    { label: 'HR Manager', email: 'hr@company.com', password: 'hr123' },
-    { label: 'Admin Staff', email: 'staff@company.com', password: 'staff123' },
-    { label: 'Field Staff', email: 'field@company.com', password: 'field123' }
+    
   ];
 
   const currentError = error || formError;
@@ -106,7 +104,7 @@ const AuthForm = () => {
           }}
         >
           <Box sx={{ display: 'flex', minHeight: '600px' }}>
-            {/* Left Side - Branding */}
+            {/* Left Side - TPA Branding */}
             <Box 
               sx={{
                 flex: 1,
@@ -139,62 +137,34 @@ const AuthForm = () => {
                 }}
               />
               
-              {/* TPA Logo Area */}
-              <Box 
-                sx={{
-                  width: 120,
-                  height: 120,
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mb: 3,
-                  backdropFilter: 'blur(10px)',
-                  border: '2px solid rgba(255,255,255,0.3)'
-                }}
-              >
-                <Box 
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    borderRadius: '50%',
-                    background: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative'
-                  }}
-                >
-                  <Box sx={{ position: 'relative' }}>
-                    <Business sx={{ fontSize: 40, color: '#ff9800' }} />
-                    <Box 
-                      sx={{
-                        position: 'absolute',
-                        top: -5,
-                        right: -5,
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        background: '#1976d2'
-                      }}
-                    />
-                  </Box>
-                </Box>
-              </Box>
+              {/* TPA Logo */}
+              <TPALogo 
+                size="xlarge"
+                showText={false}
+                sx={{ zIndex: 1 }}
+              />
               
-              <Typography variant="h3" fontWeight="bold" sx={{ mb: 1 }}>
+              <Typography variant="h3" fontWeight="bold" sx={{ mb: 1, zIndex: 1 }}>
                 TPA
               </Typography>
-              <Typography variant="h6" sx={{ mb: 2, opacity: 0.9 }}>
+              <Typography variant="h6" sx={{ mb: 2, opacity: 0.9, zIndex: 1 }}>
                 Tennessee Personal Assistance
               </Typography>
-              <Typography variant="body1" sx={{ opacity: 0.8, maxWidth: 300 }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  opacity: 0.8, 
+                  maxWidth: 350, 
+                  zIndex: 1,
+                  fontWeight: 500,
+                  letterSpacing: 0.5
+                }}
+              >
                 Empowering communities through comprehensive personal assistance services across Tennessee
               </Typography>
               
               {/* Decorative elements */}
-              <Box sx={{ mt: 4, display: 'flex', gap: 1 }}>
+              <Box sx={{ mt: 4, display: 'flex', gap: 1, zIndex: 1 }}>
                 {[...Array(3)].map((_, i) => (
                   <Box
                     key={i}
@@ -215,13 +185,15 @@ const AuthForm = () => {
             </Box>
 
             {/* Right Side - Login Form */}
-            <Box sx={{ flex: 1, p: 4 }}>
+            <Box sx={{ 
+              flex: 1, 
+              p: 4,
+              background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)'
+            }}>
               <Box sx={{ maxWidth: 400, mx: 'auto', mt: 2 }}>
                 {/* Mobile Logo */}
                 <Box sx={{ display: { xs: 'flex', md: 'none' }, justifyContent: 'center', mb: 4 }}>
-                  <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>
-                    <Business />
-                  </Avatar>
+                  <TPALogo size="medium" showText={false} />
                 </Box>
 
                 <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 4 }}>

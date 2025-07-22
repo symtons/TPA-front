@@ -1,5 +1,5 @@
 // src/services/api.js
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://localhost:7062/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://localhost:7069/api';
 
 class ApiService {
   constructor() {
